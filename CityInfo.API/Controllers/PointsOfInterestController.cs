@@ -1,14 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers
 {
     [Route("api/cities/{cityId}/pointsofinterest")]
     [ApiController]
-    public class PointsOfInterest : ControllerBase
+    public class PointsOfInterestController : ControllerBase
     {
         [HttpGet]
-        public ActionResult<IEnumerable<PointsOfInterest>> GetPointsOfInterest(int cityId)
+        public ActionResult<IEnumerable<PointsOfInterestController>> GetPointsOfInterest(int cityId)
         {
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
 
@@ -22,7 +21,7 @@ namespace CityInfo.API.Controllers
 
         [HttpGet]
         [Route("{pointId}")]
-        public ActionResult<PointsOfInterest> GetPointOfInterest(int cityId, int pointId)
+        public ActionResult<PointsOfInterestController> GetPointOfInterest(int cityId, int pointId)
         {
             var city = CitiesDataStore.Current.Cities.Find(c => c.Id == cityId);
             if (city == null)
