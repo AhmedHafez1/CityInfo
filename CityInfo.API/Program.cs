@@ -1,13 +1,29 @@
+
+
+
+using CityInfo.API;
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Use Serilog For Logging
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File("logs/cityinfo.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 // Add services to the container.
+
+builder.Services.AddScoped<CitiesDataStore>();
 
 builder.Services.AddControllers(options =>
 {
     options.ReturnHttpNotAcceptable = true;
 }).AddNewtonsoftJson()
-.AddXmlDataContractSerializerFormatters()
-;
+.AddXmlDataContractSerializerFormatters();
 
 builder.Services.AddProblemDetails(options =>
 {
@@ -22,6 +38,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+    app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
