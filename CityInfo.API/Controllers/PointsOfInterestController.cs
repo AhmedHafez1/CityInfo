@@ -30,7 +30,7 @@ namespace CityInfo.API.Controllers
                 return NotFound();
             }
 
-            return Ok(city.PointsOfInterests);
+            return Ok(city.PointsOfInterest);
         }
 
         [HttpGet("{pointId}", Name = "GetPointOfInterest")]
@@ -42,7 +42,7 @@ namespace CityInfo.API.Controllers
                 return NotFound();
             }
 
-            var pointOfInterest = city.PointsOfInterests.FirstOrDefault(p => p.Id == pointId);
+            var pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
             if (pointOfInterest == null)
             {
                 return NotFound();
@@ -57,12 +57,12 @@ namespace CityInfo.API.Controllers
 
             if (city == null) return NotFound();
 
-            var lastId = _citiesData.Cities.SelectMany(c => c.PointsOfInterests).Max(p => p.Id);
+            var lastId = _citiesData.Cities.SelectMany(c => c.PointsOfInterest).Max(p => p.Id);
 
             var pointOfInterest = new PointOfInterestDto
             { Id = ++lastId, Name = createPointOfInterestDto.Name, Description = createPointOfInterestDto.Description };
 
-            city.PointsOfInterests.Add(pointOfInterest);
+            city.PointsOfInterest.Add(pointOfInterest);
 
             return CreatedAtRoute("GetPointOfInterest", new { cityId, pointId = pointOfInterest.Id }, pointOfInterest);
         }
@@ -73,7 +73,7 @@ namespace CityInfo.API.Controllers
             var city = _citiesData.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null) return NotFound();
 
-            var pointOfInterest = city.PointsOfInterests.FirstOrDefault(p => p.Id == pointId);
+            var pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
             if (pointOfInterest == null) return NotFound();
 
             var pointToUpdate = new UpdatePointOfInterestDto
@@ -100,10 +100,10 @@ namespace CityInfo.API.Controllers
             var city = _citiesData.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null) return NotFound();
 
-            var pointToDelete = city.PointsOfInterests.FirstOrDefault(p => p.Id == pointId);
+            var pointToDelete = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
             if (pointToDelete == null) return NotFound();
 
-            city.PointsOfInterests.Remove(pointToDelete);
+            city.PointsOfInterest.Remove(pointToDelete);
 
             return NoContent();
         }
