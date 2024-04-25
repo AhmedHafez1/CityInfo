@@ -2,6 +2,8 @@
 
 
 using CityInfo.API;
+using CityInfo.API.Data;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +19,9 @@ builder.Host.UseSerilog();
 
 // Add services to the container.
 
-builder.Services.AddScoped<CitiesDataStore>();
+builder.Services.AddSingleton<CitiesDataStore>();
+
+builder.Services.AddDbContext<CityInfoContext>(dbContextOptions => dbContextOptions.UseSqlite("Data Source = CityInfo.db"));
 
 builder.Services.AddControllers(options =>
 {
