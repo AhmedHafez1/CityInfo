@@ -1,8 +1,6 @@
-
-
-
 using CityInfo.API;
 using CityInfo.API.Data;
+using CityInfo.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -24,6 +22,8 @@ builder.Services.AddSingleton<CitiesDataStore>();
 builder.Services.AddDbContext<CityInfoContext>(
     dbContextOptions => dbContextOptions.UseSqlite(
     builder.Configuration["ConnectionStrings:CityInfoDbConnectionString"]));
+
+builder.Services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 
 builder.Services.AddControllers(options =>
 {

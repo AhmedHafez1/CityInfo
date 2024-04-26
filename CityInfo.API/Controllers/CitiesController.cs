@@ -1,4 +1,5 @@
 ﻿using CityInfo.API.Models;
+using CityInfo.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers
@@ -7,30 +8,60 @@ namespace CityInfo.API.Controllers
     [Route("api/cities")]
     public class CitiesController : ControllerBase
     {
-        private readonly CitiesDataStore _citiesData;
+        private readonly ICityInfoRepository _cityInfoRepository;
 
-        public CitiesController(CitiesDataStore citiesData)
+        public CitiesController(ICityInfoRepository cityInfoRepository)
         {
-            _citiesData = citiesData;
+            _cityInfoRepository = cityInfoRepository;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CityDto>> GetCities()
+        public async Task<ActionResult<IEnumerable<CityDto>>> GetCities()
         {
-            return _citiesData.Cities;
+            var cities = await _cityInfoRepository.GetCitiesAsync();
+
+            var citiesDtos = cities.Select(c => new CityDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                PointsOfInterest = c.PointsOfInterest.Select(p => new PointOfInterestDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+
+                }).ToList()
+            });
+
+            return Ok(citiesDtos);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<CityDto> GetCity(int id)
+        public async Task<ActionResult<CityDto>> GetCity(int id)
         {
-            var city = _citiesData.Cities.FirstOrDefault(c => c.Id == id);
+            var city = await _cityInfoRepository.GetCityAsync(id);
 
             if (city == null)
             {
                 return NotFound("City not found with id " + id);
             }
 
-            return city;
+            var cityDto = new CityDto
+            {
+                Id = city.Id,
+                Name = city.Name,
+                Description = city.Description,
+                PointsOfInterest = city.PointsOfInterest.Select(p =>
+                new PointOfInterestDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                }).ToList()
+            };
+
+            return Ok(cityDto);
         }
     }
 }
