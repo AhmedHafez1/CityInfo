@@ -1,4 +1,5 @@
-﻿using CityInfo.API.Models;
+﻿using AutoMapper;
+using CityInfo.API.Models;
 using CityInfo.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +10,12 @@ namespace CityInfo.API.Controllers
     public class CitiesController : ControllerBase
     {
         private readonly ICityInfoRepository _cityInfoRepository;
+        private readonly IMapper _mapper;
 
-        public CitiesController(ICityInfoRepository cityInfoRepository)
+        public CitiesController(ICityInfoRepository cityInfoRepository, IMapper mapper)
         {
             _cityInfoRepository = cityInfoRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -20,21 +23,7 @@ namespace CityInfo.API.Controllers
         {
             var cities = await _cityInfoRepository.GetCitiesAsync();
 
-            var citiesDtos = cities.Select(c => new CityDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                PointsOfInterest = c.PointsOfInterest.Select(p => new PointOfInterestDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-
-                }).ToList()
-            });
-
-            return Ok(citiesDtos);
+            return Ok(_mapper.Map<IEnumerable<CityDto>>(cities));
         }
 
         [HttpGet("{id}")]
@@ -47,21 +36,7 @@ namespace CityInfo.API.Controllers
                 return NotFound("City not found with id " + id);
             }
 
-            var cityDto = new CityDto
-            {
-                Id = city.Id,
-                Name = city.Name,
-                Description = city.Description,
-                PointsOfInterest = city.PointsOfInterest.Select(p =>
-                new PointOfInterestDto
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Description = p.Description,
-                }).ToList()
-            };
-
-            return Ok(cityDto);
+            return Ok(_mapper.Map<CityDto>(city));
         }
     }
 }
