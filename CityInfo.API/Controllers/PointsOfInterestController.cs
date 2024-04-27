@@ -73,6 +73,22 @@ namespace CityInfo.API.Controllers
             return CreatedAtRoute("GetPointOfInterest", new { cityId, pointId = pointOfInterest.Id }, _mapper.Map<PointOfInterestDto>(pointOfInterest));
         }
 
+        [HttpPut("{pointId}")]
+        public async Task<ActionResult<PointOfInterestDto>> UpdatePointOfInterest(int cityId, int pointId, UpdatePointOfInterestDto updatePointOfInterestDto)
+        {
+            var city = await _cityInfoRepository.GetCityAsync(cityId);
+            if (city == null) return NotFound();
+
+            var pointToUpdate = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
+            if (pointToUpdate == null) return NotFound();
+
+           _mapper.Map(updatePointOfInterestDto, pointToUpdate);
+
+            await _cityInfoRepository.SaveChangesAsync();
+
+            return Ok(_mapper.Map<PointOfInterestDto>(pointToUpdate));
+        }
+
         [HttpPatch("{pointId}")]
         public ActionResult PatchPointOfInterest(int pointId, int cityId, JsonPatchDocument<UpdatePointOfInterestDto> patchDocument)
         {
