@@ -82,7 +82,7 @@ namespace CityInfo.API.Controllers
             var pointToUpdate = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
             if (pointToUpdate == null) return NotFound();
 
-           _mapper.Map(updatePointOfInterestDto, pointToUpdate);
+            _mapper.Map(updatePointOfInterestDto, pointToUpdate);
 
             await _cityInfoRepository.SaveChangesAsync();
 
@@ -90,42 +90,40 @@ namespace CityInfo.API.Controllers
         }
 
         [HttpPatch("{pointId}")]
-        public ActionResult PatchPointOfInterest(int pointId, int cityId, JsonPatchDocument<UpdatePointOfInterestDto> patchDocument)
+        public async Task<ActionResult> PatchPointOfInterest(int pointId, int cityId, JsonPatchDocument<UpdatePointOfInterestDto> patchDocument)
         {
-            //var city = _citiesData.Cities.FirstOrDefault(c => c.Id == cityId);
-            //if (city == null) return NotFound();
+            var cityExists = await _cityInfoRepository.CityExistsAsync(cityId);
+            if (!cityExists) return NotFound();
 
-            //var pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
-            //if (pointOfInterest == null) return NotFound();
+            var pointToUpdate = await _cityInfoRepository.GetOnePointOfInterestAsync(cityId, pointId);
+            if (pointToUpdate == null) return NotFound();
 
-            //var pointToUpdate = new UpdatePointOfInterestDto
-            //{
-            //    Name = pointOfInterest.Name,
-            //    Description = pointOfInterest.Description,
-            //};
+            var updatePointOfInterestDto = _mapper.Map<UpdatePointOfInterestDto>(pointToUpdate);
 
-            //patchDocument.ApplyTo(pointToUpdate, ModelState);
+            patchDocument.ApplyTo(updatePointOfInterestDto, ModelState);
 
-            //if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            //if (!TryValidateModel(pointToUpdate)) return BadRequest(ModelState);
+            if (!TryValidateModel(updatePointOfInterestDto)) return BadRequest(ModelState);
 
-            //pointOfInterest.Name = pointToUpdate.Name;
-            //pointOfInterest.Description = pointToUpdate.Description;
+            _mapper.Map(updatePointOfInterestDto, pointToUpdate);
+
+            await _cityInfoRepository.SaveChangesAsync();
 
             return NoContent();
         }
 
         [HttpDelete("{pointId}")]
-        public ActionResult DeletePointOfInterest(int pointId, int cityId)
+        public async Task<ActionResult> DeletePointOfInterest(int pointId, int cityId)
         {
-            //var city = _citiesData.Cities.FirstOrDefault(c => c.Id == cityId);
-            //if (city == null) return NotFound();
+            var city = await _cityInfoRepository.GetCityAsync(cityId);
+            if (city == null) return NotFound();
 
-            //var pointToDelete = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
-            //if (pointToDelete == null) return NotFound();
+            var pointToDelete = city.PointsOfInterest.FirstOrDefault(p => p.Id == pointId);
+            if (pointToDelete == null) return NotFound();
 
-            //city.PointsOfInterest.Remove(pointToDelete);
+            city.PointsOfInterest.Remove(pointToDelete);
+            await _cityInfoRepository.SaveChangesAsync();
 
             return NoContent();
         }
