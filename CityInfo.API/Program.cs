@@ -1,8 +1,12 @@
+using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using CityInfo.API;
 using CityInfo.API.Data;
 using CityInfo.API.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,9 +45,38 @@ builder.Services.AddProblemDetails(options =>
     };
 });
 
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+}).AddMvc()
+.AddApiExplorer(setupAction =>
+{
+    setupAction.SubstituteApiVersionInUrl = true;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+var apiVersionDescriptionProvider = builder.Services.BuildServiceProvider()
+    .GetRequiredService<IApiVersionDescriptionProvider>();
+
+builder.Services.AddSwaggerGen((setupAction) =>
+{
+    foreach (var versionDescription in apiVersionDescriptionProvider.ApiVersionDescriptions)
+    {
+        setupAction.SwaggerDoc(versionDescription.GroupName, new OpenApiInfo
+        {
+            Title = "City API",
+            Version = versionDescription.ApiVersion.ToString(),
+        });
+    }
+    var xmlCommentsFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFileName);
+
+    setupAction.IncludeXmlComments(xmlCommentsFullPath);
+});
 
 var app = builder.Build();
 
@@ -54,7 +87,15 @@ if (!app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI((setupAction =>
+    {
+        var versionDescriptions = app.DescribeApiVersions();
+        foreach (var versionDescription in versionDescriptions)
+        {
+            setupAction.SwaggerEndpoint($"/swagger/{versionDescription.GroupName}/swagger.json",
+                                                    versionDescription.GroupName.ToUpperInvariant());
+        }
+    }));
 }
 
 app.UseHttpsRedirection();

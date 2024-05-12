@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using CityInfo.API.Entities;
 using CityInfo.API.Models;
 using CityInfo.API.Repositories;
@@ -8,8 +9,9 @@ using System.Runtime.Serialization;
 
 namespace CityInfo.API.Controllers
 {
-    [Route("api/cities/{cityId}/pointsofinterest")]
+    [Route("api/v{version:apiVersion}/cities/{cityId}/pointsofinterest")]
     [ApiController]
+    [ApiVersion("2.0")]
     public class PointsOfInterestController : ControllerBase
     {
         private readonly ILogger<PointsOfInterestController> _logger;
@@ -18,7 +20,6 @@ namespace CityInfo.API.Controllers
 
 
         public PointsOfInterestController(ILogger<PointsOfInterestController> logger,
-            CitiesDataStore citiesData,
             ICityInfoRepository cityInfoRepository,
             IMapper mapper)
         {
@@ -27,6 +28,11 @@ namespace CityInfo.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Get Points of interest for a given city.
+        /// </summary>
+        /// <param name="cityId"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PointOfInterestDto>>> GetPointsOfInterest(int cityId)
         {
@@ -43,6 +49,12 @@ namespace CityInfo.API.Controllers
             return Ok(_mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfInterest));
         }
 
+        /// <summary>
+        /// Get point of interest for a city by id.
+        /// </summary>
+        /// <param name="cityId"></param>
+        /// <param name="pointId"></param>
+        /// <returns></returns>
         [HttpGet("{pointId}", Name = "GetPointOfInterest")]
         public async Task<ActionResult<PointOfInterestDto>> GetPointOfInterest(int cityId, int pointId)
         {

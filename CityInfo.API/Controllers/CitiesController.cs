@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using CityInfo.API.Models;
 using CityInfo.API.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,8 @@ using System.Text.Json;
 namespace CityInfo.API.Controllers
 {
     [ApiController]
-    [Route("api/cities")]
+    [Route("api/v{vesion:apiVersion}/cities")]
+    [ApiVersion("1.0")]
     public class CitiesController : ControllerBase
     {
         private readonly ICityInfoRepository _cityInfoRepository;
@@ -40,7 +42,15 @@ namespace CityInfo.API.Controllers
             return Ok(_mapper.Map<IEnumerable<CityDto>>(cities));
         }
 
+        /// <summary>
+        /// Get a city by id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<CityDto>> GetCity(int id)
         {
             var city = await _cityInfoRepository.GetCityAsync(id);
