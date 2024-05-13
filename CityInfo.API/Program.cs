@@ -3,6 +3,7 @@ using Asp.Versioning.ApiExplorer;
 using CityInfo.API;
 using CityInfo.API.Data;
 using CityInfo.API.Repositories;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -78,25 +79,30 @@ builder.Services.AddSwaggerGen((setupAction) =>
     setupAction.IncludeXmlComments(xmlCommentsFullPath);
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseForwardedHeaders();
+
+
+app.UseSwagger();
+app.UseSwaggerUI((setupAction =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI((setupAction =>
+    var versionDescriptions = app.DescribeApiVersions();
+    foreach (var versionDescription in versionDescriptions)
     {
-        var versionDescriptions = app.DescribeApiVersions();
-        foreach (var versionDescription in versionDescriptions)
-        {
-            setupAction.SwaggerEndpoint($"/swagger/{versionDescription.GroupName}/swagger.json",
-                                                    versionDescription.GroupName.ToUpperInvariant());
-        }
-    }));
-}
+        setupAction.SwaggerEndpoint($"/swagger/{versionDescription.GroupName}/swagger.json",
+                                                versionDescription.GroupName.ToUpperInvariant());
+    }
+}));
 
 app.UseHttpsRedirection();
 
